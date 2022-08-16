@@ -15,8 +15,8 @@ sequelize
 app.use(cors());
 app.use(logger("combined"));
 app.use(express.json());
+app.use(router);
 app.use(errorLogger);
 app.use(errorResponder);
-app.use(router);
 
 module.exports = app;
