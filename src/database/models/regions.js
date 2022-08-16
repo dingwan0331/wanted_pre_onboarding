@@ -29,7 +29,7 @@ module.exports = class Region extends Sequelize.Model {
   }
   static associate(db) {
     db.Region.hasMany(db.Company, {
-      foreignKey: "region_id",
+      foreignKey: "regionId",
       sourceKey: "id",
     });
   }
