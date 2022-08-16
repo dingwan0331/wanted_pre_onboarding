@@ -31,7 +31,7 @@ module.exports = class Country extends Sequelize.Model {
   static associate(db) {
     {
       db.Country.hasMany(db.Region, {
-        foreignKey: "country_id",
+        foreignKey: "countryId",
         sourceKey: "id",
       });
     }
