@@ -23,5 +23,8 @@ module.exports = class Apply extends Sequelize.Model {
       }
     );
   }
-  static associate(db) {}
+  static associate(db) {
+    db.Apply.belongsTo(db.User);
+    db.Apply.belongsTo(db.JobPosting);
+  }
 };
