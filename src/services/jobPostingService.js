@@ -46,4 +46,48 @@ const posting = async (bodyData, userData) => {
   return;
 };
 
-module.exports = { posting };
+const update = async (jobPostingId, bodyData, userData) => {
+  const jobPostingData = await jobPostingDao.getJobPosting(jobPostingId);
+
+  if (!jobPostingData) {
+    throw new CreateError(400, "Invalid jobPosting");
+  }
+
+  const userCompanyId = userData.Company.dataValues.id;
+  const jobPostingCompanyId = jobPostingData.dataValues.companyId;
+
+  if (userCompanyId !== jobPostingCompanyId) {
+    throw new CreateError(403, "Don't have permission to update");
+  }
+
+  const { positionId, recruitmentCompensation, content, technologyStackId } =
+    bodyData;
+
+  if (jobPostingData.positionId === positionId) {
+    throw new CreateError(400, "Duplicated JobPosting");
+  }
+
+  if (isNaN(+recruitmentCompensation)) {
+    throw new CreateError(400, "Invalid recruitmentCompensation");
+  }
+
+  const recruitmentCompensationInt = parseInt(+recruitmentCompensation);
+
+  const intData = {
+    positionId: positionId,
+    technologyStackId: technologyStackId,
+    recruitmentCompensation: recruitmentCompensationInt,
+  };
+
+  validateInt(intData);
+
+  if (content.length <= 200) {
+    throw new CreateError(400, "Content's length must be more than 200");
+  }
+
+  await jobPostingDao.updateJobPosting(jobPostingId, bodyData);
+
+  return;
+};
+
+module.exports = { posting, update };
