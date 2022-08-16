@@ -28,7 +28,7 @@ db.JobPosting = JobPosting;
 db.Company = Company;
 db.TechnologyStack = TechnologyStack;
 db.Position = Position;
-db.Apply = Position;
+db.Apply = Apply;
 
 User.init(sequelize);
 Country.init(sequelize);

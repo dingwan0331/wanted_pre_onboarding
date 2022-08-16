@@ -35,5 +35,11 @@ module.exports = class JobPosting extends Sequelize.Model {
     db.JobPosting.belongsToMany(db.TechnologyStack, {
       through: "job_posting_and_technology_stack",
     });
+    db.JobPosting.hasMany(db.Apply, {
+      foreignKey: "jobPostingId",
+      sourceKey: "id",
+    });
+    db.JobPosting.belongsTo(db.Position);
+    db.JobPosting.belongsTo(db.Company);
   }
 };
