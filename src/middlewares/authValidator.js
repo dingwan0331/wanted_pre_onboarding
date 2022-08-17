@@ -1,6 +1,6 @@
 const dotenv = require("dotenv");
 const jwt = require("jsonwebtoken");
-const { getUser } = require("../models/userDao");
+const { getTokenUser } = require("../models/userDao");
 const { CreateError } = require("../utils/Exceptions");
 
 dotenv.config();
@@ -13,7 +13,7 @@ function tokenValidator(checkRole) {
       const { authorization } = req.headers;
       const decoded = jwt.verify(authorization, process.env.SECRET_KEY);
       const userId = decoded.userId;
-      const userData = await getUser(userId);
+      const userData = await getTokenUser(userId);
 
       if (!userData) {
         throw tokenError;
@@ -25,10 +25,7 @@ function tokenValidator(checkRole) {
         throw tokenError;
       }
 
-      let reqUser = userData.dataValues;
-      reqUser.UserRole = userRole;
-
-      req.user = reqUser;
+      req.user = userData.dataValues;
 
       next();
     } catch (err) {
