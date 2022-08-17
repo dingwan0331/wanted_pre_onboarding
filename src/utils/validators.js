@@ -1,14 +1,17 @@
-isPositiveInt = (value) => {
-  let result = true;
-  if (isNaN(+value)) {
-    result = false;
-    return;
-  }
-  if (value <= 0 || value % 1) {
-    result = false;
-    return;
-  }
-  return result;
+const { CreateError } = require("./exceptions");
+
+const validateInt = (data) => {
+  const keys = Object.keys(data);
+
+  keys.forEach((element) => {
+    if (data[element] <= 0 || data[element] % 1) {
+      throw new CreateError(400, `Invalid ${element}`);
+    }
+    if (isNaN(+data[element])) {
+      throw new CreateError(400, `Invalid ${element}`);
+    }
+  });
+  return;
 };
 
-module.exports = { isPositiveInt };
+module.exports = { validateInt };
