@@ -1,11 +1,14 @@
-const { User, UserRole } = require("../database/models");
+const { User, UserRole, Company } = require("../database/models");
 
-const getUser = async (userId) => {
+const getTokenUser = async (userId) => {
   const user = await User.findOne({
     where: { id: userId, deletedAt: null },
-    include: [{ model: UserRole, attributes: ["name"] }],
+    include: [
+      { model: UserRole, attributes: ["name"] },
+      { model: Company, attributes: ["id"] },
+    ],
   });
   return user;
 };
 
-module.exports = { getUser };
+module.exports = { getTokenUser };
