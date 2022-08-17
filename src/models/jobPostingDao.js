@@ -1,7 +1,7 @@
 const { JobPosting, TechnologyStack } = require("../database/models");
 const { CreateError } = require("../utils/exceptions");
 
-const getJobPosting = async (companyId, positionId) => {
+const getJobPostingByCompanyAndPosition = async (companyId, positionId) => {
   const JobPostingRow = JobPosting.findOne({
     where: { companyId: companyId, positionId: positionId },
   });
@@ -36,4 +36,4 @@ const createJobPosting = async (
   }
 };
 
-module.exports = { createJobPosting, getJobPosting };
+module.exports = { createJobPosting, getJobPostingByCompanyAndPosition };
