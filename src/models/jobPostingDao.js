@@ -1,5 +1,6 @@
 const { JobPosting } = require("../database/models");
 const { CreateError } = require("../utils/exceptions");
+const { Op } = require("sequelize");
 
 const getJobPostingByCompanyAndPosition = async (companyId, positionId) => {
   const JobPostingRow = JobPosting.findOne({
@@ -42,7 +43,7 @@ const getJobPosting = async (JobPostingId) => {
 const updateJobPosting = async (jobPostingId, updateData) => {
   try {
     const updateJobPosting = await JobPosting.update(updateData, {
-      where: { id: 2 },
+      where: { id: jobPostingId },
     });
 
     return;
@@ -54,9 +55,23 @@ const updateJobPosting = async (jobPostingId, updateData) => {
   }
 };
 
+const getJobPostings = async (jobPostingIds) => {
+  const jobPostings = await JobPosting.findAll({
+    where: { id: { [Op.in]: jobPostingIds } },
+  });
+
+  return jobPostings;
+};
+
+const deleteJobPostings = async (jobPostingIds) => {
+  await JobPosting.destroy({ where: { id: jobPostingIds } });
+};
+
 module.exports = {
   createJobPosting,
   getJobPostingByCompanyAndPosition,
   getJobPosting,
   updateJobPosting,
+  deleteJobPostings,
+  getJobPostings,
 };

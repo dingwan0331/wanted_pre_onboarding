@@ -37,4 +37,21 @@ const update = async (req, res, next) => {
   }
 };
 
-module.exports = { posting, update };
+const remove = async (req, res, next) => {
+  try {
+    let jobPostingIds = req.query["job-posting-ids"];
+    const companyId = req.user.Company.dataValues.id;
+
+    if (!jobPostingIds) {
+      return res.status(204).end();
+    }
+
+    await jobPostingService.remove(jobPostingIds, companyId);
+
+    res.status(204).end();
+  } catch (err) {
+    next(err);
+  }
+};
+
+module.exports = { posting, update, remove };
