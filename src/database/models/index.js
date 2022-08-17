@@ -7,6 +7,7 @@ const TechnologyStack = require("./technologyStacks");
 const Position = require("./positions");
 const JobPosting = require("./jobPostings");
 const Apply = require("./applies");
+const UserRole = require("./userRoles");
 
 const env = process.env.NODE_ENV || "development";
 const config = require("../config/config")[env];
@@ -29,6 +30,7 @@ db.Company = Company;
 db.TechnologyStack = TechnologyStack;
 db.Position = Position;
 db.Apply = Apply;
+db.UserRole = UserRole;
 
 User.init(sequelize);
 Country.init(sequelize);
@@ -38,6 +40,7 @@ Company.init(sequelize);
 TechnologyStack.init(sequelize);
 Position.init(sequelize);
 Apply.init(sequelize);
+UserRole.init(sequelize);
 
 User.associate(db);
 Country.associate(db);
@@ -47,5 +50,6 @@ Company.associate(db);
 TechnologyStack.associate(db);
 Position.associate(db);
 Apply.associate(db);
+UserRole.associate;
 
 module.exports = db;
