@@ -28,5 +28,10 @@ module.exports = class TechnologyStack extends Sequelize.Model {
       }
     );
   }
-  static associate(db) {}
+  static associate(db) {
+    db.TechnologyStack.hasMany(db.JobPosting, {
+      foreignKey: "technologyStackId",
+      sourceKey: "id",
+    });
+  }
 };

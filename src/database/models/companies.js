@@ -32,10 +32,7 @@ module.exports = class Company extends Sequelize.Model {
       foreignKey: "companyId",
       sourceKey: "id",
       onDelete: "cascade",
-    }),
-      db.Company.belongsToMany(db.TechnologyStack, {
-        through: "company_and_technology_stack",
-      });
+    });
     db.Company.belongsTo(db.User);
   }
 };
