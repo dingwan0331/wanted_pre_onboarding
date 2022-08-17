@@ -1,6 +1,6 @@
 const { CreateError } = require("../utils/exceptions");
 const jobPostingDao = require("../models/jobPostingDao");
-const { isPositiveInt } = require("../utils/validators");
+const { validateInt } = require("../utils/validators");
 
 const posting = async (bodyData, userData) => {
   const { positionId, recruitmentCompensation, content, technologyStackId } =
@@ -13,25 +13,18 @@ const posting = async (bodyData, userData) => {
 
   const companyId = company.dataValues.id;
 
-  if (!isPositiveInt(technologyStackId)) {
-    throw new CreateError(400, "Invalid technologyStackId");
-  }
+  const recruitmentCompensationInt = parseInt(+recruitmentCompensation);
 
-  if (!isPositiveInt(positionId)) {
-    throw new CreateError(400, "Invalid positionId");
-  }
+  const intData = {
+    technologyStackId: technologyStackId,
+    positionId: positionId,
+    recruitmentCompensation: recruitmentCompensationInt,
+  };
+
+  validateInt(intData);
 
   if (content.length <= 200) {
-    throw new CreateError(400, "Content's length must be more than 300");
-  }
-
-  if (isNaN(+recruitmentCompensation)) {
-    throw new CreateError(400, "Invalid recruitmentCompensation");
-  }
-
-  const recruitmentCompensationInt = parseInt(+recruitmentCompensation);
-  if (!isPositiveInt(recruitmentCompensationInt)) {
-    throw new CreateError(400, "recruitmentCompensation must be more than 0");
+    throw new CreateError(400, "Content's length must be more than 200");
   }
 
   const checkJobPosting = await jobPostingDao.getJobPostingByCompanyAndPosition(

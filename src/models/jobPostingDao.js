@@ -1,4 +1,4 @@
-const { JobPosting, TechnologyStack } = require("../database/models");
+const { JobPosting } = require("../database/models");
 const { CreateError } = require("../utils/exceptions");
 
 const getJobPostingByCompanyAndPosition = async (companyId, positionId) => {
@@ -16,18 +16,15 @@ const createJobPosting = async (
   technologyStackId
 ) => {
   try {
-    const TechnologyStackRow = await TechnologyStack.findByPk(
-      technologyStackId
-    );
-
     const createJobPosting = await JobPosting.create({
       companyId: companyId,
       positionId: positionId,
       recruitmentCompensation: recruitmentCompensation,
       content: content,
+      technologyStackId: technologyStackId,
     });
 
-    return createJobPosting.addTechnologyStack(TechnologyStackRow);
+    return createJobPosting;
   } catch (err) {
     if (err.name == "SequelizeForeignKeyConstraintError") {
       err = new CreateError(400, `Invalid ${err.fields}`);
