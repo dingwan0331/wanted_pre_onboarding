@@ -36,5 +36,6 @@ module.exports = class Company extends Sequelize.Model {
       db.Company.belongsToMany(db.TechnologyStack, {
         through: "company_and_technology_stack",
       });
+    db.Company.belongsTo(db.User);
   }
 };
