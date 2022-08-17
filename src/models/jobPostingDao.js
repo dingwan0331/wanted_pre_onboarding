@@ -33,4 +33,30 @@ const createJobPosting = async (
   }
 };
 
-module.exports = { createJobPosting, getJobPostingByCompanyAndPosition };
+const getJobPosting = async (JobPostingId) => {
+  const JobPostingData = await JobPosting.findByPk(JobPostingId);
+
+  return JobPostingData;
+};
+
+const updateJobPosting = async (jobPostingId, updateData) => {
+  try {
+    const updateJobPosting = await JobPosting.update(updateData, {
+      where: { id: 2 },
+    });
+
+    return;
+  } catch (err) {
+    if (err.name == "SequelizeForeignKeyConstraintError") {
+      err = new CreateError(400, `Invalid ${err.fields}`);
+    }
+    throw err;
+  }
+};
+
+module.exports = {
+  createJobPosting,
+  getJobPostingByCompanyAndPosition,
+  getJobPosting,
+  updateJobPosting,
+};
