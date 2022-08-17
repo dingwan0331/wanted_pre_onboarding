@@ -34,5 +34,6 @@ module.exports = class User extends Sequelize.Model {
       sourceKey: "id",
     });
     db.User.belongsTo(db.UserRole);
+    db.User.hasOne(db.Company, { foreignKey: "userId", sourceKey: "id" });
   }
 };
