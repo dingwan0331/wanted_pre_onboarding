@@ -1,27 +1,27 @@
 const Sequelize = require("sequelize");
 
-module.exports = class User extends Sequelize.Model {
+module.exports = class UserRole extends Sequelize.Model {
   static init(sequelize) {
     return super.init(
       {
         id: {
-          type: Sequelize.BIGINT.UNSIGNED,
+          type: Sequelize.INTEGER.UNSIGNED,
           allowNull: false,
           primaryKey: true,
           autoIncrement: true,
         },
-        email: {
-          type: Sequelize.STRING(50),
+        name: {
+          type: Sequelize.STRING(20),
           allowNull: false,
           unique: true,
         },
       },
       {
         sequelize,
-        timestamps: true,
-        modelName: "User",
-        tableName: "users",
-        paranoid: true,
+        timestamps: false,
+        modelName: "UserRole",
+        tableName: "user_roles",
+        paranoid: false,
         underscored: true,
         charset: "utf8",
         collate: "utf8_general_ci",
@@ -29,10 +29,9 @@ module.exports = class User extends Sequelize.Model {
     );
   }
   static associate(db) {
-    db.User.hasMany(db.Apply, {
-      foreignKey: "userId",
+    db.UserRole.hasMany(db.User, {
+      foreignKey: "userRoleId",
       sourceKey: "id",
     });
-    db.User.belongsTo(db.UserRole);
   }
 };
