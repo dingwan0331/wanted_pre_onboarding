@@ -90,4 +90,34 @@ const update = async (jobPostingId, bodyData, userData) => {
   return;
 };
 
-module.exports = { posting, update };
+const remove = async (jobPostingIds, companyId) => {
+  jobPostingIds = JSON.parse(jobPostingIds);
+
+  if (!Array.isArray(jobPostingIds)) {
+    throw new CreateError(400, "Invalid Query");
+  }
+
+  validateInt(jobPostingIds);
+
+  if (!jobPostingIds.length) {
+    return;
+  }
+
+  const jobPostings = await jobPostingDao.getJobPostings(jobPostingIds);
+
+  jobPostings.forEach((element) => {
+    if (element.dataValues.companyId !== companyId) {
+      throw new CreateError(403, "Don't have permission to delete");
+    }
+  });
+
+  if (!(jobPostings.length === jobPostingIds.length)) {
+    throw new CreateError(400, "Already been deleted");
+  }
+
+  await jobPostingDao.deleteJobPostings(jobPostingIds);
+
+  return;
+};
+
+module.exports = { posting, update, remove };
