@@ -88,16 +88,23 @@ const updateJobPosting = async (wherObject, updateData) => {
   }
 };
 
-const getJobPostings = async (jobPostingIds) => {
-  const jobPostings = await JobPosting.findAll({
-    where: { id: { [Op.in]: jobPostingIds } },
+const getJobPostings = async (
+  whereObject,
+  include = defaultInclude,
+  attributes = defalutAttibutes
+) => {
+  const jobPostingRows = await JobPosting.findAll({
+    where: whereObject,
+    include: include,
+    attributes: attributes,
   });
 
-  return jobPostings;
+  return jobPostingRows;
 };
 
-const deleteJobPostings = async (jobPostingIds) => {
-  await JobPosting.destroy({ where: { id: jobPostingIds } });
+const deleteJobPostings = async (whereObject) => {
+  const deletedCount = await JobPosting.destroy({ where: whereObject });
+  return deletedCount;
 };
 
 const getJobPostingsInclude = async (findOptions) => {

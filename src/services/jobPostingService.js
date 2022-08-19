@@ -1,6 +1,7 @@
 const { CreateError } = require("../utils/exceptions");
 const jobPostingDao = require("../models/jobPostingDao");
 const { validateInt } = require("../utils/validators");
+const { Op } = require("sequelize");
 
 const postJobPostings = async (bodyData, userData) => {
   const { positionId, recruitmentCompensation, content, technologyStackId } =
@@ -97,35 +98,38 @@ const updateJobPosting = async (jobPostingId, bodyData, userData) => {
   return jobPostingRow;
 };
 
-const remove = async (jobPostingIds, companyId) => {
+const deleteJobPostings = async (jobPostingIds, companyId) => {
   try {
     jobPostingIds = JSON.parse(jobPostingIds);
 
     validateInt(jobPostingIds);
 
-    if (!jobPostingIds.length) {
-      return;
-    }
+    const whereObject = { id: { [Op.in]: jobPostingIds } };
 
-    const jobPostings = await jobPostingDao.getJobPostings(jobPostingIds);
+    const checkJobPostingRows = await jobPostingDao.getJobPostings(whereObject);
 
-    jobPostings.forEach((element) => {
-      if (element.dataValues.companyId !== companyId) {
+    let dbCompanyId;
+    checkJobPostingRows.forEach((row) => {
+      dbCompanyId = row.Company.id;
+      if (dbCompanyId !== companyId) {
         throw new CreateError(403, "Don't have permission to delete");
       }
     });
 
-    if (!(jobPostings.length === jobPostingIds.length)) {
+    if (!(checkJobPostingRows.length === jobPostingIds.length)) {
       throw new CreateError(400, "Already been deleted");
     }
 
-    await jobPostingDao.deleteJobPostings(jobPostingIds);
+    const deletedWhereObject = { id: jobPostingIds };
 
-    return;
+    const result = await jobPostingDao.deleteJobPostings(deletedWhereObject);
+
+    return result;
   } catch (err) {
-    if ((err.message = "Unexpected end of JSON input")) {
-      throw new CreateError(400, "Invalid query");
+    if (err.message == "Unexpected end of JSON input") {
+      throw new CreateError(400, "Invalid Query params");
     }
+    throw err;
   }
 };
 
@@ -224,7 +228,7 @@ const getJobPosting = async (jobPostingId) => {
 module.exports = {
   postJobPostings,
   updateJobPosting,
-  remove,
+  deleteJobPostings,
   getJobPostings,
   getJobPosting,
 };
