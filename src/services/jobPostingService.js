@@ -122,4 +122,57 @@ const remove = async (jobPostingIds, companyId) => {
   }
 };
 
-module.exports = { posting, update, remove };
+const getJobPostings = async (
+  offset = 0,
+  limit = 20,
+  companyName = "",
+  technologyStackName = "",
+  orderKey = "-createdAt"
+) => {
+  validateInt([offset + 1, limit]);
+
+  offset = Number(offset);
+  limit = Number(limit);
+
+  const orderSet = {
+    createdAt: ["createdAt", "ASC"],
+    "-createdAt": ["createdAt", "DESC"],
+    recruitmentCompensation: ["recruitmentCompensation", "ASC"],
+    "-recruitmentCompensation": ["recruitmentCompensation", "DESC"],
+  };
+
+  if (!orderSet[orderKey]) {
+    throw new CreateError(400, "Invalid orderKey");
+  }
+
+  const order = orderSet[orderKey];
+
+  const jobPostingsRows = await jobPostingDao.getJobPostingsInclude({
+    offset: offset,
+    limit: limit,
+    companyName: companyName,
+    technologyStackName: technologyStackName,
+    order: order,
+  });
+
+  const result = [];
+
+  jobPostingsRows.forEach((row) =>
+    result.push({
+      id: row.id,
+      position: row["Position.name"],
+      recruitmentCompensation: parseInt(row.recruitmentCompensation),
+      createdAt: row.createdAt,
+      company: {
+        name: row["Company.name"],
+        region: row["Company.Region.name"],
+        coountry: row["Company.Region.Country.name"],
+      },
+      technologyStack: row["TechnologyStack.name"],
+    })
+  );
+
+  return result;
+};
+
+module.exports = { posting, update, remove, getJobPostings };

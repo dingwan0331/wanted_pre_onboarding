@@ -54,4 +54,23 @@ const remove = async (req, res, next) => {
   }
 };
 
-module.exports = { posting, update, remove };
+const getJobPostings = async (req, res, next) => {
+  try {
+    let { offset, limit, companyName, technologyStackName, orderKey } =
+      req.query;
+
+    const result = await jobPostingService.getJobPostings(
+      offset,
+      limit,
+      companyName,
+      technologyStackName,
+      orderKey
+    );
+
+    res.status(200).json({ jobPostings: result });
+  } catch (err) {
+    next(err);
+  }
+};
+
+module.exports = { posting, update, remove, getJobPostings };
