@@ -38,5 +38,6 @@ module.exports = class JobPosting extends Sequelize.Model {
     });
     db.JobPosting.belongsTo(db.Position);
     db.JobPosting.belongsTo(db.Company);
+    db.JobPosting.belongsTo(db.TechnologyStack);
   }
 };
