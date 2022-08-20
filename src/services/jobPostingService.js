@@ -47,7 +47,7 @@ const posting = async (bodyData, userData) => {
 };
 
 const update = async (jobPostingId, bodyData, userData) => {
-  const jobPostingData = await jobPostingDao.getJobPosting(jobPostingId);
+  const jobPostingData = await jobPostingDao.getJobPostingByPk(jobPostingId);
 
   if (!jobPostingData) {
     throw new CreateError(400, "Invalid jobPosting");
@@ -175,4 +175,43 @@ const getJobPostings = async (
   return result;
 };
 
-module.exports = { posting, update, remove, getJobPostings };
+const getJobPosting = async (jobPostingId) => {
+  const jobPostingsRow = await jobPostingDao.getJobPostingByPk(jobPostingId);
+
+  if (!jobPostingsRow) {
+    throw new CreateError(404, "Not Found");
+  }
+
+  const companyId = jobPostingsRow["Company.id"];
+
+  const sameCompanyJobPostingsRows =
+    await jobPostingDao.getJobPostingsByCompanyId(companyId);
+
+  const sameCompanyJobPostings = [];
+  sameCompanyJobPostingsRows.forEach((row) =>
+    sameCompanyJobPostings.push({
+      id: row.id,
+      position: row["Position.name"],
+      createdAt: row.createdAt,
+    })
+  );
+
+  const result = {
+    id: jobPostingsRow.id,
+    position: jobPostingsRow["Position.name"],
+    content: jobPostingsRow.content,
+    recruitmentCompensation: parseInt(jobPostingsRow.recruitmentCompensation),
+    createdAt: jobPostingsRow.createdAt,
+    company: {
+      name: jobPostingsRow["Company.name"],
+      region: jobPostingsRow["Company.Region.name"],
+      coountry: jobPostingsRow["Company.Region.Country.name"],
+    },
+    technologyStack: jobPostingsRow["TechnologyStack.name"],
+    sameCompanyJobPostings: sameCompanyJobPostings,
+  };
+
+  return result;
+};
+
+module.exports = { posting, update, remove, getJobPostings, getJobPosting };

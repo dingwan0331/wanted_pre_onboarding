@@ -8,7 +8,7 @@ const {
 } = require("../database/models");
 const { sequelize } = require("../database/models");
 const { CreateError } = require("../utils/exceptions");
-const { Op } = require("sequelize");
+const { Op, fn } = require("sequelize");
 
 const getJobPostingByCompanyAndPosition = async (companyId, positionId) => {
   const JobPostingRow = JobPosting.findOne({
@@ -42,8 +42,35 @@ const createJobPosting = async (
   }
 };
 
-const getJobPosting = async (JobPostingId) => {
-  const JobPostingData = await JobPosting.findByPk(JobPostingId);
+const getJobPostingByPk = async (JobPostingId) => {
+  const JobPostingData = await JobPosting.findByPk(JobPostingId, {
+    raw: true,
+    attributes: {
+      exclude: [
+        "PositionId",
+        "positionId",
+        "CompanyId",
+        "companyId",
+        "TechnologyStackId",
+        "technologyStackId",
+      ],
+    },
+    include: [
+      {
+        model: Company,
+        attributes: ["id", "name"],
+        include: {
+          model: Region,
+          attributes: ["id", "name"],
+          include: { model: Country },
+        },
+      },
+      { model: Position },
+      {
+        model: TechnologyStack,
+      },
+    ],
+  });
 
   return JobPostingData;
 };
@@ -111,12 +138,54 @@ const getJobPostingsInclude = async (findOptions) => {
   }
 };
 
+const getJobPostingsByCompanyId = async (companyId) => {
+  try {
+    const jobPostingsRows = await JobPosting.findAll({
+      raw: true,
+      attributes: {
+        exclude: [
+          "PositionId",
+          "positionId",
+          "CompanyId",
+          "companyId",
+          "TechnologyStackId",
+          "technologyStackId",
+        ],
+      },
+      where: { companyId: companyId },
+      limit: 10,
+      order: [fn("RAND")],
+      include: [
+        {
+          model: Company,
+          attributes: ["id", "name"],
+          include: {
+            model: Region,
+            attributes: ["id", "name"],
+            include: { model: Country },
+          },
+        },
+        { model: Position },
+        {
+          model: TechnologyStack,
+        },
+      ],
+    });
+
+    return jobPostingsRows;
+  } catch (err) {
+    err.message = "Database Error";
+    throw err;
+  }
+};
+
 module.exports = {
   createJobPosting,
   getJobPostingByCompanyAndPosition,
-  getJobPosting,
+  getJobPostingByPk,
   updateJobPosting,
   deleteJobPostings,
   getJobPostings,
   getJobPostingsInclude,
+  getJobPostingsByCompanyId,
 };

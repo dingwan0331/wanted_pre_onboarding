@@ -11,5 +11,10 @@ router.patch(
 );
 router.delete("", authValidator("company"), jobPostingController.remove);
 router.get("", authValidator("company"), jobPostingController.getJobPostings);
+router.get(
+  "/:jobPostingId",
+  authValidator("company"),
+  jobPostingController.getJobPosting
+);
 
 module.exports = router;
