@@ -32,5 +32,6 @@ module.exports = class Region extends Sequelize.Model {
       foreignKey: "regionId",
       sourceKey: "id",
     });
+    db.Region.belongsTo(db.Country);
   }
 };

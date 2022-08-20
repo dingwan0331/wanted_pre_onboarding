@@ -10,5 +10,6 @@ router.patch(
   jobPostingController.update
 );
 router.delete("", authValidator("company"), jobPostingController.remove);
+router.get("", authValidator("company"), jobPostingController.getJobPostings);
 
 module.exports = router;

@@ -1,4 +1,12 @@
-const { JobPosting } = require("../database/models");
+const {
+  JobPosting,
+  Position,
+  TechnologyStack,
+  Company,
+  Region,
+  Country,
+} = require("../database/models");
+const { sequelize } = require("../database/models");
 const { CreateError } = require("../utils/exceptions");
 const { Op } = require("sequelize");
 
@@ -67,6 +75,42 @@ const deleteJobPostings = async (jobPostingIds) => {
   await JobPosting.destroy({ where: { id: jobPostingIds } });
 };
 
+const getJobPostingsInclude = async (findOptions) => {
+  try {
+    const { offset, limit, order, companyName, technologyStackName } =
+      findOptions;
+
+    const jobPostingsRows = await JobPosting.findAll({
+      raw: true,
+      offset: offset,
+      limit: limit,
+      order: [order],
+      include: [
+        {
+          model: Company,
+          attributes: ["id", "name"],
+          where: { name: { [Op.like]: `%${companyName}%` } },
+          include: {
+            model: Region,
+            attributes: ["id", "name"],
+            include: { model: Country },
+          },
+        },
+        { model: Position },
+        {
+          model: TechnologyStack,
+          where: { name: { [Op.like]: `%${technologyStackName}%` } },
+        },
+      ],
+    });
+
+    return jobPostingsRows;
+  } catch (err) {
+    err.message = "Database Error";
+    throw err;
+  }
+};
+
 module.exports = {
   createJobPosting,
   getJobPostingByCompanyAndPosition,
@@ -74,4 +118,5 @@ module.exports = {
   updateJobPosting,
   deleteJobPostings,
   getJobPostings,
+  getJobPostingsInclude,
 };

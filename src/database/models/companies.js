@@ -34,5 +34,6 @@ module.exports = class Company extends Sequelize.Model {
       onDelete: "cascade",
     });
     db.Company.belongsTo(db.User);
+    db.Company.belongsTo(db.Region);
   }
 };
