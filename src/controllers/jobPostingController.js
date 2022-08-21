@@ -73,4 +73,16 @@ const getJobPostings = async (req, res, next) => {
   }
 };
 
-module.exports = { posting, update, remove, getJobPostings };
+const getJobPosting = async (req, res, next) => {
+  try {
+    const { jobPostingId } = req.params;
+
+    result = await jobPostingService.getJobPosting(jobPostingId);
+
+    res.status(200).json({ jobPosting: result });
+  } catch (err) {
+    next(err);
+  }
+};
+
+module.exports = { posting, update, remove, getJobPostings, getJobPosting };
