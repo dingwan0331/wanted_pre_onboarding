@@ -1,6 +1,13 @@
 # wanted_pre_onboarding
 
 wanted_pre_onboarding 사전 기술과제 </br>
+기업 채용공고 페이지 관련 API구현
+- 포스팅
+- 수정
+- 삭제
+- 리스트
+- 상세페이지
+- 채용공고지원
 
 # 사용기술 스택
 
@@ -57,6 +64,8 @@ wanted_pre_onboarding 사전 기술과제 </br>
 - models : ORM을 사용하여 DB와 통신합니다.
 
 # Project ERD
+<img width="1233" alt="스크린샷 2022-08-22 오전 12 32 48" src="https://user-images.githubusercontent.com/100751719/185801404-1b43fa0e-22ce-48ad-bb22-95f274aed89c.png">
+
 
 - Company와 user 는 1:1관계입니다. (한 회사의 회사계정은 하나만 허용합니다.)
 
