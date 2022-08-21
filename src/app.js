@@ -4,6 +4,7 @@ const logger = require("morgan");
 const router = require("./routes");
 const { errorLogger, errorResponder } = require("./middlewares/error");
 const { sequelize } = require("./database/models");
+const ccqp = require("ccqp");
 
 const app = express();
 
@@ -15,8 +16,9 @@ sequelize
 app.use(cors());
 app.use(logger("combined"));
 app.use(express.json());
+app.use(ccqp);
+app.use(router);
 app.use(errorLogger);
 app.use(errorResponder);
-app.use(router);
 
 module.exports = app;
