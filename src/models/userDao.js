@@ -1,14 +1,14 @@
 const { User, UserRole, Company } = require("../database/models");
 
-const getTokenUser = async (userId) => {
-  const user = await User.findOne({
-    where: { id: userId, deletedAt: null },
+const getUserByPk = async (userId) => {
+  const userRow = await User.findByPk(userId, {
+    raw: true,
     include: [
-      { model: UserRole, attributes: ["name"] },
-      { model: Company, attributes: ["id"] },
+      { model: UserRole, attributes: ["id", "name"] },
+      { model: Company, attributes: ["id", "name"] },
     ],
   });
-  return user;
+  return userRow;
 };
 
-module.exports = { getTokenUser };
+module.exports = { getUserByPk };
