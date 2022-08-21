@@ -19,11 +19,11 @@ function tokenValidator(checkRole) {
         throw tokenError;
       }
 
-      const userRole = userData.UserRole.dataValues.name;
+      // const userRole = userData.UserRole.dataValues.name;
 
-      if (checkRole !== userRole) {
-        throw tokenError;
-      }
+      // if (checkRole !== userRole) {
+      //   throw tokenError;
+      // }
 
       req.user = userData.dataValues;
 
