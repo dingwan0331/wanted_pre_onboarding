@@ -10,30 +10,48 @@ const { sequelize } = require("../database/models");
 const { CreateError } = require("../utils/exceptions");
 const { Op, fn } = require("sequelize");
 
-const getJobPostingByCompanyAndPosition = async (companyId, positionId) => {
-  const JobPostingRow = JobPosting.findOne({
-    where: { companyId: companyId, positionId: positionId },
+const defaultInclude = [
+  {
+    model: Company,
+    attributes: ["id", "name"],
+    include: {
+      model: Region,
+      attributes: ["id", "name"],
+      include: { model: Country },
+    },
+  },
+  { model: Position },
+  {
+    model: TechnologyStack,
+  },
+];
+
+const defalutAttibutes = [
+  "id",
+  "content",
+  "recruitmentCompensation",
+  "createdAt",
+  "updatedAt",
+];
+
+const getJobPosting = async (
+  whereObject,
+  include = defaultInclude,
+  attributes = defalutAttibutes
+) => {
+  const JobPostingRow = await JobPosting.findOne({
+    where: whereObject,
+    include: include,
+    attributes: attributes,
   });
   return JobPostingRow;
 };
 
-const createJobPosting = async (
-  companyId,
-  positionId,
-  recruitmentCompensation,
-  content,
-  technologyStackId
-) => {
+const createJobPosting = async (createdJobPostingData) => {
   try {
-    const createJobPosting = await JobPosting.create({
-      companyId: companyId,
-      positionId: positionId,
-      recruitmentCompensation: recruitmentCompensation,
-      content: content,
-      technologyStackId: technologyStackId,
-    });
+    const jobPostingRow = await JobPosting.create(createdJobPostingData);
 
-    return createJobPosting;
+    return jobPostingRow;
   } catch (err) {
     if (err.name == "SequelizeForeignKeyConstraintError") {
       err = new CreateError(400, `Invalid ${err.fields}`);
@@ -181,7 +199,7 @@ const getJobPostingsByCompanyId = async (companyId) => {
 
 module.exports = {
   createJobPosting,
-  getJobPostingByCompanyAndPosition,
+  getJobPosting,
   getJobPostingByPk,
   updateJobPosting,
   deleteJobPostings,

@@ -1,18 +1,26 @@
 const { CreateError } = require("../utils/exceptions");
 const jobPostingService = require("../services/jobPostingService");
 
-const posting = async (req, res, next) => {
+const postJobPostings = async (req, res, next) => {
   try {
     const { positionId, recruitmentCompensation, content, technologyStackId } =
       req.body;
 
-    if ((!positionId, !recruitmentCompensation, !content, !technologyStackId)) {
+    if (
+      !positionId &&
+      !recruitmentCompensation &&
+      !content &&
+      !technologyStackId
+    ) {
       throw new CreateError(400, "Key Error");
     }
 
-    await jobPostingService.posting(req.body, req.user);
+    const jobPostingRow = await jobPostingService.postJobPostings(
+      req.body,
+      req.user
+    );
 
-    res.status(200).json({ message: "Success" });
+    res.status(201).json({ message: "Created" });
   } catch (err) {
     next(err);
   }
@@ -85,4 +93,10 @@ const getJobPosting = async (req, res, next) => {
   }
 };
 
-module.exports = { posting, update, remove, getJobPostings, getJobPosting };
+module.exports = {
+  postJobPostings,
+  update,
+  remove,
+  getJobPostings,
+  getJobPosting,
+};
