@@ -51,16 +51,19 @@ const updateJobPosting = async (req, res, next) => {
   }
 };
 
-const remove = async (req, res, next) => {
+const deleteJobPostings = async (req, res, next) => {
   try {
-    let jobPostingIds = req.query["job-posting-ids"];
-    const companyId = req.user.Company.dataValues.id;
+    const { jobPostingIds } = req.query;
+    const companyId = req.user.Company.id;
 
-    if (!jobPostingIds) {
+    if (!jobPostingIds || jobPostingIds === "[]") {
       return res.status(204).end();
     }
 
-    await jobPostingService.remove(jobPostingIds, companyId);
+    const result = await jobPostingService.deleteJobPostings(
+      jobPostingIds,
+      companyId
+    );
 
     res.status(204).end();
   } catch (err) {
@@ -102,7 +105,7 @@ const getJobPosting = async (req, res, next) => {
 module.exports = {
   postJobPostings,
   updateJobPosting,
-  remove,
+  deleteJobPostings,
   getJobPostings,
   getJobPosting,
 };

@@ -9,7 +9,11 @@ router.patch(
   authValidator("company"),
   jobPostingController.updateJobPosting
 );
-router.delete("", authValidator("company"), jobPostingController.remove);
+router.delete(
+  "",
+  authValidator("company"),
+  jobPostingController.deleteJobPostings
+);
 router.get("", authValidator("company"), jobPostingController.getJobPostings);
 router.get(
   "/:jobPostingId",
