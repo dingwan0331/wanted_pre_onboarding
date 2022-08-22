@@ -5,8 +5,6 @@ const postApply = async (req, res, next) => {
   try {
     const { jobPostingId } = req.body;
 
-    console.log(jobPostingId);
-
     if (!jobPostingId) {
       throw new CreateError(400, "Key Error");
     }
