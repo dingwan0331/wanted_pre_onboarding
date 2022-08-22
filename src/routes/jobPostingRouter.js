@@ -7,7 +7,7 @@ router.post("", authValidator("company"), jobPostingController.postJobPostings);
 router.patch(
   "/:jobPostingId",
   authValidator("company"),
-  jobPostingController.update
+  jobPostingController.updateJobPosting
 );
 router.delete("", authValidator("company"), jobPostingController.remove);
 router.get("", authValidator("company"), jobPostingController.getJobPostings);
