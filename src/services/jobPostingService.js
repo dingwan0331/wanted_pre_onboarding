@@ -133,13 +133,13 @@ const deleteJobPostings = async (jobPostingIds, companyId) => {
   }
 };
 
-const getJobPostings = async (
+const getJobPostings = async ({
   offset = 0,
   limit = 20,
   companyName = "",
   technologyStackName = "",
-  orderKey = "-createdAt"
-) => {
+  orderKey = "-createdAt",
+}) => {
   validateInt([offset + 1, limit]);
 
   offset = Number(offset);
@@ -158,7 +158,7 @@ const getJobPostings = async (
 
   const order = orderSet[orderKey];
 
-  const jobPostingsRows = await jobPostingDao.getJobPostingsInclude({
+  const jobPostingRows = await jobPostingDao.getJobPostingsList({
     offset: offset,
     limit: limit,
     companyName: companyName,
@@ -166,22 +166,21 @@ const getJobPostings = async (
     order: order,
   });
 
-  const result = [];
+  const result = jobPostingRows.map((row) => {
+    row.dataValues.position = row.Position.name;
+    row.dataValues.technologyStack = row.TechnologyStack.name;
+    row.dataValues.company = {
+      name: row.Company.name,
+      region: row.Company.Region.name,
+      country: row.Company.Region.Country.name,
+    };
 
-  jobPostingsRows.forEach((row) =>
-    result.push({
-      id: row.id,
-      position: row["Position.name"],
-      recruitmentCompensation: parseInt(row.recruitmentCompensation),
-      createdAt: row.createdAt,
-      company: {
-        name: row["Company.name"],
-        region: row["Company.Region.name"],
-        coountry: row["Company.Region.Country.name"],
-      },
-      technologyStack: row["TechnologyStack.name"],
-    })
-  );
+    delete row.dataValues.Company;
+    delete row.dataValues.Position;
+    delete row.dataValues.TechnologyStack;
+    delete row.dataValues.updatedAt;
+    return row;
+  });
 
   return result;
 };
