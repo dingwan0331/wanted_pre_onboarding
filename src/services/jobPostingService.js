@@ -2,16 +2,15 @@ const { CreateError } = require("../utils/exceptions");
 const jobPostingDao = require("../models/jobPostingDao");
 const { validateInt } = require("../utils/validators");
 
-const posting = async (bodyData, userData) => {
+const postJobPostings = async (bodyData, userData) => {
   const { positionId, recruitmentCompensation, content, technologyStackId } =
     bodyData;
+
   const company = userData.Company;
 
   if (!company) {
     throw new CreateError(401, "Company must be registered");
   }
-
-  const companyId = company.dataValues.id;
 
   const recruitmentCompensationInt = parseInt(+recruitmentCompensation);
 
@@ -27,23 +26,24 @@ const posting = async (bodyData, userData) => {
     throw new CreateError(400, "Content's length must be more than 200");
   }
 
-  const checkJobPosting = await jobPostingDao.getJobPostingByCompanyAndPosition(
-    companyId,
-    positionId
-  );
+  const companyId = company.id;
 
-  if (checkJobPosting) {
+  const whereObject = { companyId: companyId, positionId: positionId };
+
+  const checkJobPostingRows = await jobPostingDao.getJobPosting(whereObject);
+
+  if (checkJobPostingRows) {
     throw new CreateError(400, "Duplicated JobPosting");
   }
 
-  await jobPostingDao.createJobPosting(
-    companyId,
-    positionId,
-    recruitmentCompensation,
-    content,
-    technologyStackId
+  const createdJobPostingData = bodyData;
+  createdJobPostingData.companyId = companyId;
+
+  const jobPostingRow = await jobPostingDao.createJobPosting(
+    createdJobPostingData
   );
-  return;
+
+  return jobPostingRow;
 };
 
 const update = async (jobPostingId, bodyData, userData) => {
@@ -214,4 +214,10 @@ const getJobPosting = async (jobPostingId) => {
   return result;
 };
 
-module.exports = { posting, update, remove, getJobPostings, getJobPosting };
+module.exports = {
+  postJobPostings,
+  update,
+  remove,
+  getJobPostings,
+  getJobPosting,
+};
