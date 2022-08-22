@@ -90,16 +90,21 @@ const updateJobPosting = async (wherObject, updateData) => {
 
 const getJobPostings = async (
   whereObject,
+  optionObject,
   include = defaultInclude,
   attributes = defalutAttibutes
 ) => {
-  const options = {};
-  options.wherObject;
-  const jobPostingRows = await JobPosting.findAll({
+  const options = {
     where: whereObject,
     include: include,
     attributes: attributes,
-  });
+  };
+
+  if (optionObject) {
+    options.order = optionObject.order;
+  }
+
+  const jobPostingRows = await JobPosting.findAll(options);
 
   return jobPostingRows;
 };
@@ -148,47 +153,6 @@ const getJobPostingsList = async (
   }
 };
 
-const getJobPostingsByCompanyId = async (companyId) => {
-  try {
-    const jobPostingsRows = await JobPosting.findAll({
-      raw: true,
-      attributes: {
-        exclude: [
-          "PositionId",
-          "positionId",
-          "CompanyId",
-          "companyId",
-          "TechnologyStackId",
-          "technologyStackId",
-        ],
-      },
-      where: { companyId: companyId },
-      limit: 10,
-      order: [fn("RAND")],
-      include: [
-        {
-          model: Company,
-          attributes: ["id", "name"],
-          include: {
-            model: Region,
-            attributes: ["id", "name"],
-            include: { model: Country },
-          },
-        },
-        { model: Position },
-        {
-          model: TechnologyStack,
-        },
-      ],
-    });
-
-    return jobPostingsRows;
-  } catch (err) {
-    err.message = "Database Error";
-    throw err;
-  }
-};
-
 module.exports = {
   createJobPosting,
   getJobPosting,
@@ -197,5 +161,4 @@ module.exports = {
   deleteJobPostings,
   getJobPostings,
   getJobPostingsList,
-  getJobPostingsByCompanyId,
 };
