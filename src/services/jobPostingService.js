@@ -1,17 +1,17 @@
 const { CreateError } = require("../utils/exceptions");
 const jobPostingDao = require("../models/jobPostingDao");
 const { validateInt } = require("../utils/validators");
+const { Op, fn } = require("sequelize");
 
-const posting = async (bodyData, userData) => {
+const postJobPostings = async (bodyData, userData) => {
   const { positionId, recruitmentCompensation, content, technologyStackId } =
     bodyData;
+
   const company = userData.Company;
 
   if (!company) {
     throw new CreateError(401, "Company must be registered");
   }
-
-  const companyId = company.dataValues.id;
 
   const recruitmentCompensationInt = parseInt(+recruitmentCompensation);
 
@@ -27,34 +27,38 @@ const posting = async (bodyData, userData) => {
     throw new CreateError(400, "Content's length must be more than 200");
   }
 
-  const checkJobPosting = await jobPostingDao.getJobPostingByCompanyAndPosition(
-    companyId,
-    positionId
-  );
+  const companyId = company.id;
 
-  if (checkJobPosting) {
+  const whereObject = { companyId: companyId, positionId: positionId };
+
+  const checkJobPostingRows = await jobPostingDao.getJobPosting(whereObject);
+
+  if (checkJobPostingRows) {
     throw new CreateError(400, "Duplicated JobPosting");
   }
 
-  await jobPostingDao.createJobPosting(
-    companyId,
-    positionId,
-    recruitmentCompensation,
-    content,
-    technologyStackId
+  const createdJobPostingData = bodyData;
+  createdJobPostingData.companyId = companyId;
+
+  const jobPostingRow = await jobPostingDao.createJobPosting(
+    createdJobPostingData
   );
-  return;
+
+  return jobPostingRow;
 };
 
-const update = async (jobPostingId, bodyData, userData) => {
-  const jobPostingData = await jobPostingDao.getJobPostingByPk(jobPostingId);
+const updateJobPosting = async (jobPostingId, bodyData, userData) => {
+  const checkJobPostingRow = await jobPostingDao.getJobPostingByPk(
+    jobPostingId
+  );
 
-  if (!jobPostingData) {
+  if (!checkJobPostingRow) {
     throw new CreateError(400, "Invalid jobPosting");
   }
 
-  const userCompanyId = userData.Company.dataValues.id;
-  const jobPostingCompanyId = jobPostingData.dataValues.companyId;
+  const userCompanyId = userData.Company.id;
+
+  const jobPostingCompanyId = checkJobPostingRow.Company.id;
 
   if (userCompanyId !== jobPostingCompanyId) {
     throw new CreateError(403, "Don't have permission to update");
@@ -63,7 +67,7 @@ const update = async (jobPostingId, bodyData, userData) => {
   const { positionId, recruitmentCompensation, content, technologyStackId } =
     bodyData;
 
-  if (jobPostingData.positionId === positionId) {
+  if (checkJobPostingRow.positionId === positionId) {
     throw new CreateError(400, "Duplicated JobPosting");
   }
 
@@ -85,50 +89,57 @@ const update = async (jobPostingId, bodyData, userData) => {
     throw new CreateError(400, "Content's length must be more than 200");
   }
 
-  await jobPostingDao.updateJobPosting(jobPostingId, bodyData);
+  const whereObject = { id: jobPostingId };
+  const jobPostingRow = await jobPostingDao.updateJobPosting(
+    whereObject,
+    bodyData
+  );
 
-  return;
+  return jobPostingRow;
 };
 
-const remove = async (jobPostingIds, companyId) => {
+const deleteJobPostings = async (jobPostingIds, companyId) => {
   try {
     jobPostingIds = JSON.parse(jobPostingIds);
 
     validateInt(jobPostingIds);
 
-    if (!jobPostingIds.length) {
-      return;
-    }
+    const whereObject = { id: { [Op.in]: jobPostingIds } };
 
-    const jobPostings = await jobPostingDao.getJobPostings(jobPostingIds);
+    const checkJobPostingRows = await jobPostingDao.getJobPostings(whereObject);
 
-    jobPostings.forEach((element) => {
-      if (element.dataValues.companyId !== companyId) {
+    let dbCompanyId;
+    checkJobPostingRows.forEach((row) => {
+      dbCompanyId = row.Company.id;
+      if (dbCompanyId !== companyId) {
         throw new CreateError(403, "Don't have permission to delete");
       }
     });
 
-    if (!(jobPostings.length === jobPostingIds.length)) {
+    if (!(checkJobPostingRows.length === jobPostingIds.length)) {
       throw new CreateError(400, "Already been deleted");
     }
 
-    await jobPostingDao.deleteJobPostings(jobPostingIds);
+    const deletedWhereObject = { id: jobPostingIds };
 
-    return;
+    const result = await jobPostingDao.deleteJobPostings(deletedWhereObject);
+
+    return result;
   } catch (err) {
-    if ((err.message = "Unexpected end of JSON input")) {
-      throw new CreateError(400, "Invalid query");
+    if (err.message == "Unexpected end of JSON input") {
+      throw new CreateError(400, "Invalid Query params");
     }
+    throw err;
   }
 };
 
-const getJobPostings = async (
+const getJobPostings = async ({
   offset = 0,
   limit = 20,
   companyName = "",
   technologyStackName = "",
-  orderKey = "-createdAt"
-) => {
+  orderKey = "-createdAt",
+}) => {
   validateInt([offset + 1, limit]);
 
   offset = Number(offset);
@@ -147,7 +158,7 @@ const getJobPostings = async (
 
   const order = orderSet[orderKey];
 
-  const jobPostingsRows = await jobPostingDao.getJobPostingsInclude({
+  const jobPostingRows = await jobPostingDao.getJobPostingsList({
     offset: offset,
     limit: limit,
     companyName: companyName,
@@ -155,22 +166,21 @@ const getJobPostings = async (
     order: order,
   });
 
-  const result = [];
+  const result = jobPostingRows.map((row) => {
+    row.dataValues.position = row.Position.name;
+    row.dataValues.technologyStack = row.TechnologyStack.name;
+    row.dataValues.company = {
+      name: row.Company.name,
+      region: row.Company.Region.name,
+      country: row.Company.Region.Country.name,
+    };
 
-  jobPostingsRows.forEach((row) =>
-    result.push({
-      id: row.id,
-      position: row["Position.name"],
-      recruitmentCompensation: parseInt(row.recruitmentCompensation),
-      createdAt: row.createdAt,
-      company: {
-        name: row["Company.name"],
-        region: row["Company.Region.name"],
-        coountry: row["Company.Region.Country.name"],
-      },
-      technologyStack: row["TechnologyStack.name"],
-    })
-  );
+    delete row.dataValues.Company;
+    delete row.dataValues.Position;
+    delete row.dataValues.TechnologyStack;
+    delete row.dataValues.updatedAt;
+    return row;
+  });
 
   return result;
 };
@@ -182,36 +192,46 @@ const getJobPosting = async (jobPostingId) => {
     throw new CreateError(404, "Not Found");
   }
 
-  const companyId = jobPostingsRow["Company.id"];
+  const companyId = jobPostingsRow.Company.id;
+  const whereObject = { companyId: companyId };
+  const options = { order: [fn("RAND")] };
 
-  const sameCompanyJobPostingsRows =
-    await jobPostingDao.getJobPostingsByCompanyId(companyId);
-
-  const sameCompanyJobPostings = [];
-  sameCompanyJobPostingsRows.forEach((row) =>
-    sameCompanyJobPostings.push({
-      id: row.id,
-      position: row["Position.name"],
-      createdAt: row.createdAt,
-    })
+  const sameCompanyJobPostingRows = await jobPostingDao.getJobPostings(
+    whereObject,
+    options
   );
+
+  const sameCompanyJobPostings = sameCompanyJobPostingRows.map((row) => {
+    const result = {
+      id: row.id,
+      position: row.Position.name,
+      createdAt: row.createdAt,
+    };
+    return result;
+  });
 
   const result = {
     id: jobPostingsRow.id,
     position: jobPostingsRow["Position.name"],
     content: jobPostingsRow.content,
-    recruitmentCompensation: parseInt(jobPostingsRow.recruitmentCompensation),
+    recruitmentCompensation: jobPostingsRow.recruitmentCompensation,
     createdAt: jobPostingsRow.createdAt,
     company: {
-      name: jobPostingsRow["Company.name"],
-      region: jobPostingsRow["Company.Region.name"],
-      coountry: jobPostingsRow["Company.Region.Country.name"],
+      name: jobPostingsRow.Company.name,
+      region: jobPostingsRow.Company.Region.name,
+      coountry: jobPostingsRow.Company.Region.Country.name,
     },
-    technologyStack: jobPostingsRow["TechnologyStack.name"],
+    technologyStack: jobPostingsRow.TechnologyStack.name,
     sameCompanyJobPostings: sameCompanyJobPostings,
   };
 
   return result;
 };
 
-module.exports = { posting, update, remove, getJobPostings, getJobPosting };
+module.exports = {
+  postJobPostings,
+  updateJobPosting,
+  deleteJobPostings,
+  getJobPostings,
+  getJobPosting,
+};

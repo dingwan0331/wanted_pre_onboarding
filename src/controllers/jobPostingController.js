@@ -1,35 +1,49 @@
 const { CreateError } = require("../utils/exceptions");
 const jobPostingService = require("../services/jobPostingService");
 
-const posting = async (req, res, next) => {
+const postJobPostings = async (req, res, next) => {
   try {
     const { positionId, recruitmentCompensation, content, technologyStackId } =
       req.body;
 
-    if ((!positionId, !recruitmentCompensation, !content, !technologyStackId)) {
+    if (
+      !positionId &&
+      !recruitmentCompensation &&
+      !content &&
+      !technologyStackId
+    ) {
       throw new CreateError(400, "Key Error");
     }
 
-    await jobPostingService.posting(req.body, req.user);
+    const result = await jobPostingService.postJobPostings(req.body, req.user);
 
-    res.status(200).json({ message: "Success" });
+    res.status(201).json({ message: "Created" });
   } catch (err) {
     next(err);
   }
 };
 
-const update = async (req, res, next) => {
+const updateJobPosting = async (req, res, next) => {
   try {
     const { positionId, recruitmentCompensation, content, technologyStackId } =
       req.body;
 
-    if ((!positionId, !recruitmentCompensation, !content, !technologyStackId)) {
+    if (
+      !positionId &&
+      !recruitmentCompensation &&
+      !content &&
+      !technologyStackId
+    ) {
       throw new CreateError(400, "Key Error");
     }
 
     const jobPostingId = req.params.jobPostingId;
 
-    await jobPostingService.update(jobPostingId, req.body, req.user);
+    const result = await jobPostingService.updateJobPosting(
+      jobPostingId,
+      req.body,
+      req.user
+    );
 
     res.status(200).json({ message: "Success" });
   } catch (err) {
@@ -37,16 +51,19 @@ const update = async (req, res, next) => {
   }
 };
 
-const remove = async (req, res, next) => {
+const deleteJobPostings = async (req, res, next) => {
   try {
-    let jobPostingIds = req.query["job-posting-ids"];
-    const companyId = req.user.Company.dataValues.id;
+    const { jobPostingIds } = req.query;
+    const companyId = req.user.Company.id;
 
-    if (!jobPostingIds) {
+    if (!jobPostingIds || jobPostingIds === "[]") {
       return res.status(204).end();
     }
 
-    await jobPostingService.remove(jobPostingIds, companyId);
+    const result = await jobPostingService.deleteJobPostings(
+      jobPostingIds,
+      companyId
+    );
 
     res.status(204).end();
   } catch (err) {
@@ -56,16 +73,7 @@ const remove = async (req, res, next) => {
 
 const getJobPostings = async (req, res, next) => {
   try {
-    let { offset, limit, companyName, technologyStackName, orderKey } =
-      req.query;
-
-    const result = await jobPostingService.getJobPostings(
-      offset,
-      limit,
-      companyName,
-      technologyStackName,
-      orderKey
-    );
+    const result = await jobPostingService.getJobPostings(req.query);
 
     res.status(200).json({ jobPostings: result });
   } catch (err) {
@@ -85,4 +93,10 @@ const getJobPosting = async (req, res, next) => {
   }
 };
 
-module.exports = { posting, update, remove, getJobPostings, getJobPosting };
+module.exports = {
+  postJobPostings,
+  updateJobPosting,
+  deleteJobPostings,
+  getJobPostings,
+  getJobPosting,
+};

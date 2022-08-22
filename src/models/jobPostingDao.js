@@ -10,30 +10,48 @@ const { sequelize } = require("../database/models");
 const { CreateError } = require("../utils/exceptions");
 const { Op, fn } = require("sequelize");
 
-const getJobPostingByCompanyAndPosition = async (companyId, positionId) => {
-  const JobPostingRow = JobPosting.findOne({
-    where: { companyId: companyId, positionId: positionId },
+const defaultInclude = [
+  {
+    model: Company,
+    attributes: ["id", "name"],
+    include: {
+      model: Region,
+      attributes: ["id", "name"],
+      include: { model: Country },
+    },
+  },
+  { model: Position },
+  {
+    model: TechnologyStack,
+  },
+];
+
+const defalutAttibutes = [
+  "id",
+  "content",
+  "recruitmentCompensation",
+  "createdAt",
+  "updatedAt",
+];
+
+const getJobPosting = async (
+  whereObject,
+  include = defaultInclude,
+  attributes = defalutAttibutes
+) => {
+  const JobPostingRow = await JobPosting.findOne({
+    where: whereObject,
+    include: include,
+    attributes: attributes,
   });
   return JobPostingRow;
 };
 
-const createJobPosting = async (
-  companyId,
-  positionId,
-  recruitmentCompensation,
-  content,
-  technologyStackId
-) => {
+const createJobPosting = async (createdJobPostingData) => {
   try {
-    const createJobPosting = await JobPosting.create({
-      companyId: companyId,
-      positionId: positionId,
-      recruitmentCompensation: recruitmentCompensation,
-      content: content,
-      technologyStackId: technologyStackId,
-    });
+    const jobPostingRow = await JobPosting.create(createdJobPostingData);
 
-    return createJobPosting;
+    return jobPostingRow;
   } catch (err) {
     if (err.name == "SequelizeForeignKeyConstraintError") {
       err = new CreateError(400, `Invalid ${err.fields}`);
@@ -42,43 +60,23 @@ const createJobPosting = async (
   }
 };
 
-const getJobPostingByPk = async (JobPostingId) => {
-  const JobPostingData = await JobPosting.findByPk(JobPostingId, {
-    raw: true,
-    attributes: {
-      exclude: [
-        "PositionId",
-        "positionId",
-        "CompanyId",
-        "companyId",
-        "TechnologyStackId",
-        "technologyStackId",
-      ],
-    },
-    include: [
-      {
-        model: Company,
-        attributes: ["id", "name"],
-        include: {
-          model: Region,
-          attributes: ["id", "name"],
-          include: { model: Country },
-        },
-      },
-      { model: Position },
-      {
-        model: TechnologyStack,
-      },
-    ],
+const getJobPostingByPk = async (
+  JobPostingId,
+  include = defaultInclude,
+  attributes = defalutAttibutes
+) => {
+  const JobPostingRow = await JobPosting.findByPk(JobPostingId, {
+    attributes: attributes,
+    include: include,
   });
 
-  return JobPostingData;
+  return JobPostingRow;
 };
 
-const updateJobPosting = async (jobPostingId, updateData) => {
+const updateJobPosting = async (wherObject, updateData) => {
   try {
     const updateJobPosting = await JobPosting.update(updateData, {
-      where: { id: jobPostingId },
+      where: wherObject,
     });
 
     return;
@@ -90,28 +88,45 @@ const updateJobPosting = async (jobPostingId, updateData) => {
   }
 };
 
-const getJobPostings = async (jobPostingIds) => {
-  const jobPostings = await JobPosting.findAll({
-    where: { id: { [Op.in]: jobPostingIds } },
-  });
+const getJobPostings = async (
+  whereObject,
+  optionObject,
+  include = defaultInclude,
+  attributes = defalutAttibutes
+) => {
+  const options = {
+    where: whereObject,
+    include: include,
+    attributes: attributes,
+  };
 
-  return jobPostings;
+  if (optionObject) {
+    options.order = optionObject.order;
+  }
+
+  const jobPostingRows = await JobPosting.findAll(options);
+
+  return jobPostingRows;
 };
 
-const deleteJobPostings = async (jobPostingIds) => {
-  await JobPosting.destroy({ where: { id: jobPostingIds } });
+const deleteJobPostings = async (whereObject) => {
+  const deletedCount = await JobPosting.destroy({ where: whereObject });
+  return deletedCount;
 };
 
-const getJobPostingsInclude = async (findOptions) => {
+const getJobPostingsList = async (
+  findOptions,
+  attributes = defalutAttibutes
+) => {
   try {
     const { offset, limit, order, companyName, technologyStackName } =
       findOptions;
 
     const jobPostingsRows = await JobPosting.findAll({
-      raw: true,
       offset: offset,
       limit: limit,
       order: [order],
+      attributes: attributes,
       include: [
         {
           model: Company,
@@ -138,54 +153,12 @@ const getJobPostingsInclude = async (findOptions) => {
   }
 };
 
-const getJobPostingsByCompanyId = async (companyId) => {
-  try {
-    const jobPostingsRows = await JobPosting.findAll({
-      raw: true,
-      attributes: {
-        exclude: [
-          "PositionId",
-          "positionId",
-          "CompanyId",
-          "companyId",
-          "TechnologyStackId",
-          "technologyStackId",
-        ],
-      },
-      where: { companyId: companyId },
-      limit: 10,
-      order: [fn("RAND")],
-      include: [
-        {
-          model: Company,
-          attributes: ["id", "name"],
-          include: {
-            model: Region,
-            attributes: ["id", "name"],
-            include: { model: Country },
-          },
-        },
-        { model: Position },
-        {
-          model: TechnologyStack,
-        },
-      ],
-    });
-
-    return jobPostingsRows;
-  } catch (err) {
-    err.message = "Database Error";
-    throw err;
-  }
-};
-
 module.exports = {
   createJobPosting,
-  getJobPostingByCompanyAndPosition,
+  getJobPosting,
   getJobPostingByPk,
   updateJobPosting,
   deleteJobPostings,
   getJobPostings,
-  getJobPostingsInclude,
-  getJobPostingsByCompanyId,
+  getJobPostingsList,
 };

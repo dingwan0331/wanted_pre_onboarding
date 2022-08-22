@@ -19,7 +19,7 @@ function tokenValidator(checkRole) {
         throw tokenError;
       }
 
-      const userRole = userRow["UserRole.name"];
+      const userRole = userRow.UserRole.name;
 
       if (checkRole !== userRole) {
         throw tokenError;
