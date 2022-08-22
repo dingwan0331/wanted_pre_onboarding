@@ -1,7 +1,7 @@
 const { CreateError } = require("../utils/exceptions");
 const jobPostingDao = require("../models/jobPostingDao");
 const { validateInt } = require("../utils/validators");
-const { Op } = require("sequelize");
+const { Op, fn } = require("sequelize");
 
 const postJobPostings = async (bodyData, userData) => {
   const { positionId, recruitmentCompensation, content, technologyStackId } =
@@ -192,32 +192,36 @@ const getJobPosting = async (jobPostingId) => {
     throw new CreateError(404, "Not Found");
   }
 
-  const companyId = jobPostingsRow["Company.id"];
+  const companyId = jobPostingsRow.Company.id;
+  const whereObject = { companyId: companyId };
+  const options = { order: [fn("RAND")] };
 
-  const sameCompanyJobPostingsRows =
-    await jobPostingDao.getJobPostingsByCompanyId(companyId);
-
-  const sameCompanyJobPostings = [];
-  sameCompanyJobPostingsRows.forEach((row) =>
-    sameCompanyJobPostings.push({
-      id: row.id,
-      position: row["Position.name"],
-      createdAt: row.createdAt,
-    })
+  const sameCompanyJobPostingRows = await jobPostingDao.getJobPostings(
+    whereObject,
+    options
   );
+
+  const sameCompanyJobPostings = sameCompanyJobPostingRows.map((row) => {
+    const result = {
+      id: row.id,
+      position: row.Position.name,
+      createdAt: row.createdAt,
+    };
+    return result;
+  });
 
   const result = {
     id: jobPostingsRow.id,
     position: jobPostingsRow["Position.name"],
     content: jobPostingsRow.content,
-    recruitmentCompensation: parseInt(jobPostingsRow.recruitmentCompensation),
+    recruitmentCompensation: jobPostingsRow.recruitmentCompensation,
     createdAt: jobPostingsRow.createdAt,
     company: {
-      name: jobPostingsRow["Company.name"],
-      region: jobPostingsRow["Company.Region.name"],
-      coountry: jobPostingsRow["Company.Region.Country.name"],
+      name: jobPostingsRow.Company.name,
+      region: jobPostingsRow.Company.Region.name,
+      coountry: jobPostingsRow.Company.Region.Country.name,
     },
-    technologyStack: jobPostingsRow["TechnologyStack.name"],
+    technologyStack: jobPostingsRow.TechnologyStack.name,
     sameCompanyJobPostings: sameCompanyJobPostings,
   };
 

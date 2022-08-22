@@ -73,9 +73,6 @@ const deleteJobPostings = async (req, res, next) => {
 
 const getJobPostings = async (req, res, next) => {
   try {
-    let { offset, limit, companyName, technologyStackName, orderKey } =
-      req.query;
-
     const result = await jobPostingService.getJobPostings(req.query);
 
     res.status(200).json({ jobPostings: result });
