@@ -60,43 +60,23 @@ const createJobPosting = async (createdJobPostingData) => {
   }
 };
 
-const getJobPostingByPk = async (JobPostingId) => {
-  const JobPostingData = await JobPosting.findByPk(JobPostingId, {
-    raw: true,
-    attributes: {
-      exclude: [
-        "PositionId",
-        "positionId",
-        "CompanyId",
-        "companyId",
-        "TechnologyStackId",
-        "technologyStackId",
-      ],
-    },
-    include: [
-      {
-        model: Company,
-        attributes: ["id", "name"],
-        include: {
-          model: Region,
-          attributes: ["id", "name"],
-          include: { model: Country },
-        },
-      },
-      { model: Position },
-      {
-        model: TechnologyStack,
-      },
-    ],
+const getJobPostingByPk = async (
+  JobPostingId,
+  include = defaultInclude,
+  attributes = defalutAttibutes
+) => {
+  const JobPostingRow = await JobPosting.findByPk(JobPostingId, {
+    attributes: attributes,
+    include: include,
   });
 
-  return JobPostingData;
+  return JobPostingRow;
 };
 
-const updateJobPosting = async (jobPostingId, updateData) => {
+const updateJobPosting = async (wherObject, updateData) => {
   try {
     const updateJobPosting = await JobPosting.update(updateData, {
-      where: { id: jobPostingId },
+      where: wherObject,
     });
 
     return;

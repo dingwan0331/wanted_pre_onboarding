@@ -46,15 +46,18 @@ const postJobPostings = async (bodyData, userData) => {
   return jobPostingRow;
 };
 
-const update = async (jobPostingId, bodyData, userData) => {
-  const jobPostingData = await jobPostingDao.getJobPostingByPk(jobPostingId);
+const updateJobPosting = async (jobPostingId, bodyData, userData) => {
+  const checkJobPostingRow = await jobPostingDao.getJobPostingByPk(
+    jobPostingId
+  );
 
-  if (!jobPostingData) {
+  if (!checkJobPostingRow) {
     throw new CreateError(400, "Invalid jobPosting");
   }
 
-  const userCompanyId = userData.Company.dataValues.id;
-  const jobPostingCompanyId = jobPostingData.dataValues.companyId;
+  const userCompanyId = userData.Company.id;
+
+  const jobPostingCompanyId = checkJobPostingRow.Company.id;
 
   if (userCompanyId !== jobPostingCompanyId) {
     throw new CreateError(403, "Don't have permission to update");
@@ -63,7 +66,7 @@ const update = async (jobPostingId, bodyData, userData) => {
   const { positionId, recruitmentCompensation, content, technologyStackId } =
     bodyData;
 
-  if (jobPostingData.positionId === positionId) {
+  if (checkJobPostingRow.positionId === positionId) {
     throw new CreateError(400, "Duplicated JobPosting");
   }
 
@@ -85,9 +88,13 @@ const update = async (jobPostingId, bodyData, userData) => {
     throw new CreateError(400, "Content's length must be more than 200");
   }
 
-  await jobPostingDao.updateJobPosting(jobPostingId, bodyData);
+  const whereObject = { id: jobPostingId };
+  const jobPostingRow = await jobPostingDao.updateJobPosting(
+    whereObject,
+    bodyData
+  );
 
-  return;
+  return jobPostingRow;
 };
 
 const remove = async (jobPostingIds, companyId) => {
@@ -216,7 +223,7 @@ const getJobPosting = async (jobPostingId) => {
 
 module.exports = {
   postJobPostings,
-  update,
+  updateJobPosting,
   remove,
   getJobPostings,
   getJobPosting,
