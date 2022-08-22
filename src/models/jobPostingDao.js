@@ -93,6 +93,8 @@ const getJobPostings = async (
   include = defaultInclude,
   attributes = defalutAttibutes
 ) => {
+  const options = {};
+  options.wherObject;
   const jobPostingRows = await JobPosting.findAll({
     where: whereObject,
     include: include,
@@ -107,16 +109,19 @@ const deleteJobPostings = async (whereObject) => {
   return deletedCount;
 };
 
-const getJobPostingsInclude = async (findOptions) => {
+const getJobPostingsList = async (
+  findOptions,
+  attributes = defalutAttibutes
+) => {
   try {
     const { offset, limit, order, companyName, technologyStackName } =
       findOptions;
 
     const jobPostingsRows = await JobPosting.findAll({
-      raw: true,
       offset: offset,
       limit: limit,
       order: [order],
+      attributes: attributes,
       include: [
         {
           model: Company,
@@ -191,6 +196,6 @@ module.exports = {
   updateJobPosting,
   deleteJobPostings,
   getJobPostings,
-  getJobPostingsInclude,
+  getJobPostingsList,
   getJobPostingsByCompanyId,
 };

@@ -76,13 +76,7 @@ const getJobPostings = async (req, res, next) => {
     let { offset, limit, companyName, technologyStackName, orderKey } =
       req.query;
 
-    const result = await jobPostingService.getJobPostings(
-      offset,
-      limit,
-      companyName,
-      technologyStackName,
-      orderKey
-    );
+    const result = await jobPostingService.getJobPostings(req.query);
 
     res.status(200).json({ jobPostings: result });
   } catch (err) {
