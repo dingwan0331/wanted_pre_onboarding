@@ -59,6 +59,7 @@ wanted_pre_onboarding 사전 기술과제 </br>
 - utils : 의존성없는 모듈들이 모여있습니다.(Error class 파일, validators파일)
 - middlewares : 컨트롤러에 닿기 전에 반복되는 로직을 모듈화 해 놓은 폴더입니다.(Error로거 & 핸들러, 토큰검사기)
 - routes : 라우팅 로직을 담당합니다.
+    - routes/index.js 에서 각 리소스별 Router파일로 분기합니다
 - controllers : 요청과 응답만을 담당하며 각리소스에 해당하는 services 파일로 연결합니다.
 - services : 프로젝트의 서비스로직을 구현하며 Dao에 필요한 데이터를 전달하며 응답할 데이터를 controller에게 전달합니다.
 - models : ORM을 사용하여 DB와 통신합니다.
