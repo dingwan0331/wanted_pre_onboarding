@@ -167,19 +167,20 @@ const getJobPostings = async ({
   });
 
   const result = jobPostingRows.map((row) => {
-    row.dataValues.position = row.Position.name;
-    row.dataValues.technologyStack = row.TechnologyStack.name;
-    row.dataValues.company = {
-      name: row.Company.name,
-      region: row.Company.Region.name,
-      country: row.Company.Region.Country.name,
+    const result = {
+      id: row.id,
+      content: row.content,
+      createdAt: row.createdAt,
+      position: row.Position.name,
+      technologyStack: row.TechnologyStack.name,
+      company: {
+        name: row.Company.name,
+        region: row.Company.Region.name,
+        country: row.Company.Region.Country.name,
+      },
     };
 
-    delete row.dataValues.Company;
-    delete row.dataValues.Position;
-    delete row.dataValues.TechnologyStack;
-    delete row.dataValues.updatedAt;
-    return row;
+    return result;
   });
 
   return result;
